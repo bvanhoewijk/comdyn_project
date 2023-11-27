@@ -39,15 +39,27 @@ def parse_cg_pdb(file, segment_to_do="PROA"):
                 y = line[39:46].strip()
                 z = line[47:54].strip()
                 segment = line[72:76].strip()
-                
+
                 if atomtype.startswith("BB") or atomtype.startswith("SC"):
-                    coordinates.append([type, atomnr, atomtype, residue, chain, residuenr, x, y, z, segment])                                   
+                    coordinates.append(
+                        [
+                            type,
+                            atomnr,
+                            atomtype,
+                            residue,
+                            chain,
+                            residuenr,
+                            x,
+                            y,
+                            z,
+                            segment,
+                        ]
+                    )
                 # if atomtype == "BB":
             if elements[0] == "CONECT":
                 conect_elements = elements[1:]
                 conect_elements = [int(x) for x in conect_elements]
                 conect.append(conect_elements)
-
 
     pdb = pd.DataFrame(coordinates)
     pdb.columns = [
@@ -67,8 +79,9 @@ def parse_cg_pdb(file, segment_to_do="PROA"):
     pdb["x"] = pdb["x"].astype("float")
     pdb["y"] = pdb["y"].astype("float")
     pdb["z"] = pdb["z"].astype("float")
-    
+
     return pdb, conect
+
 
 def get_rubber_bonds(itp, pdb_bb, min_local_diff):
     """_summary_
@@ -80,7 +93,7 @@ def get_rubber_bonds(itp, pdb_bb, min_local_diff):
 
     Returns:
         _type_: _description_
-    """    
+    """
     rubber_bands = []
     for res1, res2 in itp["res_tuple"]:
         if abs(res2 - res1) <= min_local_diff:
@@ -116,6 +129,7 @@ def get_rubber_bonds(itp, pdb_bb, min_local_diff):
         )
     return rubber_bands
 
+
 def get_aa_beads(pdb_bb):
     """_summary_
 
@@ -124,7 +138,7 @@ def get_aa_beads(pdb_bb):
 
     Returns:
         _type_: _description_
-    """    
+    """
     backbone_beads = []
     hover_text_beads = list(pdb_bb.apply(lambda x: get_bb_hover(x), axis=1))
     backbone_beads.append(
@@ -142,6 +156,8 @@ def get_aa_beads(pdb_bb):
         )
     )
     return backbone_beads
+
+
 def get_sc_beads(pdb_sc):
     """_summary_
 
@@ -150,7 +166,7 @@ def get_sc_beads(pdb_sc):
 
     Returns:
         _type_: _description_
-    """    
+    """
     sc_beads = []
     hover_text_beads = list(pdb_sc.apply(lambda x: get_sc_hover(x), axis=1))
     sc_beads.append(
@@ -169,6 +185,7 @@ def get_sc_beads(pdb_sc):
     )
     return sc_beads
 
+
 def get_bb_links(pdb_bb):
     """_summary_
 
@@ -177,7 +194,7 @@ def get_bb_links(pdb_bb):
 
     Returns:
         _type_: _description_
-    """    
+    """
     backbone_links = []
     for i in range(len(pdb_bb) - 1):
         a = i + 1
@@ -212,6 +229,7 @@ def get_bb_links(pdb_bb):
         )
     return backbone_links
 
+
 def get_sc_links(pdb_bb, sc):
     """_summary_
 
@@ -221,23 +239,24 @@ def get_sc_links(pdb_bb, sc):
 
     Returns:
         _type_: _description_
-    """    
-    residuenr = sc['residuenr']
+    """
+    residuenr = sc["residuenr"]
 
     result = pdb_bb[pdb_bb["residuenr"] == residuenr].iloc[0]
-    result['x'], result['y'], result['z']
+    result["x"], result["y"], result["z"]
 
     scatter = go.Scatter3d(
-                x=[result['x'], sc['x']],
-                y=[result['y'], sc['y']],
-                z=[result['z'], sc['z']],
-                name="backbone",
-                legendgroup="backbone",
-                mode="lines",
-                line=dict(width=3, color="grey"),
-                showlegend=False,
-            )
+        x=[result["x"], sc["x"]],
+        y=[result["y"], sc["y"]],
+        z=[result["z"], sc["z"]],
+        name="backbone",
+        legendgroup="backbone",
+        mode="lines",
+        line=dict(width=3, color="grey"),
+        showlegend=False,
+    )
     return scatter
+
 
 def get_highlight_beads(pdb, highlights):
     """_summary_
@@ -248,7 +267,7 @@ def get_highlight_beads(pdb, highlights):
 
     Returns:
         _type_: _description_
-    """    
+    """
     highlight_beads = []
     for highlight in highlights:
         pdb_a = pdb[pdb["residuenr"] == highlight].iloc[0]
@@ -269,8 +288,15 @@ def get_highlight_beads(pdb, highlights):
         )
     return highlight_beads
 
+
 def get_pdb_points(
-    pdb, itp, plot_connection=True, plot_rubber=True, plot_sc=True, min_local_diff=0, highlights=[]
+    pdb,
+    itp,
+    plot_connection=True,
+    plot_rubber=True,
+    plot_sc=True,
+    min_local_diff=0,
+    highlights=[],
 ):
     """_summary_
 
@@ -294,11 +320,9 @@ def get_pdb_points(
     rubber_bands = []
     if plot_rubber:
         rubber_bands = get_rubber_bonds(itp, pdb_bb, min_local_diff)
-        
 
     # Plot individual beads:
     backbone_beads = get_aa_beads(pdb_bb)
-
 
     # Plot SC beads:
     pdb_sc = pdb[pdb["atomtype"] != "BB"]
@@ -309,14 +333,19 @@ def get_pdb_points(
         # Calculate connections:
         sc_links = list(pdb_sc.apply(lambda sc: get_sc_links(pdb_bb, sc), axis=1))
 
-
     highlight_beads = get_highlight_beads(pdb, highlights)
 
     print(f"BBBs in plot   : {len(pdb['x'])}")
     print(f"Rubbers in plot: {len(rubber_bands)}")
-    
 
-    return [backbone_links, rubber_bands, backbone_beads, highlight_beads, sc_links, sc_beads]
+    return [
+        backbone_links,
+        rubber_bands,
+        backbone_beads,
+        highlight_beads,
+        sc_links,
+        sc_beads,
+    ]
 
 
 def get_bb_hover(x):
@@ -332,6 +361,7 @@ def get_bb_hover(x):
         f"{x['residue']}{x['residuenr']}<br>x: {x['x']}<br>y: {x['y']}<br>z: {x['z']}"
     )
 
+
 def get_sc_hover(x):
     """Get hover text for a single PDB series
 
@@ -341,9 +371,7 @@ def get_sc_hover(x):
     Returns:
         str: formatter hover string
     """
-    return (
-        f"{x['atomtype']} of {x['residue']}{x['residuenr']}<br>x: {x['x']}<br>y: {x['y']}<br>z: {x['z']}"
-    )
+    return f"{x['atomtype']} of {x['residue']}{x['residuenr']}<br>x: {x['x']}<br>y: {x['y']}<br>z: {x['z']}"
 
 
 def axes_style3d(
@@ -385,7 +413,7 @@ def plot_pdb(
     for series in points:
         for item in series:
             plot_figure.add_trace(item)
-    
+
     # Set the scene
     scene = dict(
         xaxis=my_axes,
