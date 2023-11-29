@@ -1,0 +1,4 @@
+data/charmmgui_pdb/*
+*.fasta
+*.fai
+*.needle

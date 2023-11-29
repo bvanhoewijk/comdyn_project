@@ -367,14 +367,20 @@ def write_itp(itp_in=None, itp_out="testje.itp", to_skip=None, verbose=False):
     for line in fh:
         if line.startswith("; Rubber band"):
             out_fh.write(line)
+            written += 1
+            print(f"Start rubber band section: {line_nr}")
             if verbose:
                 print(f"Start rubber band section: {line_nr}")
             rubber_section = True
+            continue
         if rubber_section:
             line_strip = line.strip()
             fields = re.split(r" +", line_strip)
-            if line and line[0].startswith(";"):
-                pass
+            if line and (line[0].startswith(";") or line[0].startswith("#")):
+                # Comment lines. Don't do anything.
+                out_fh.write(line)
+                written += 1
+                continue
             elif len(fields) == 5:
                 location = (int(fields[0]), int(fields[1]))
                 if location in to_skip:
