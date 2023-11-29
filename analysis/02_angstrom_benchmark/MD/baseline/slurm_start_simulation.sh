@@ -26,18 +26,16 @@ if [ -f "rep${rep}/step7_production_rep${rep}.tpr" ]; then
     echo "####################### TPR is defined. Skipping gmx grompp."
 else
     # Create TPR:
-    echo -e "\n\n\n"
+    echo "####################### TPR not defined. Creating via grompp"
     srun gmx grompp -f step7_production.mdp -o rep${rep}/step7_production_rep${rep}.tpr -c step6.6_equilibration.gro -p system.top -n index.ndx -po rep${rep}/mdout.mdp
 fi
 
 # If checkpoint:
 if [ -f "rep${rep}/step7_production_rep${rep}.cpt" ]; then
     echo "####################### Using checkpoint"
-    echo -e "\n\n\n"
     mpirun gmx_mpi mdrun -cpi rep${rep}/step7_production_rep${rep}.cpt -deffnm rep${rep}/step7_production_rep${rep} -append -g rep${rep}/rep${rep}_md.log
 else
     # If no checkpoint:
     echo "####################### No checkpoint. Starting fresh run"
-    echo -e "\n\n\n"
     mpirun gmx_mpi mdrun -deffnm rep${rep}/step7_production_rep${rep} -cpt 1 -pin on -g rep${rep}/rep${rep}_md.log
 fi
