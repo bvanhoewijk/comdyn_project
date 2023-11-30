@@ -2,3 +2,4 @@ data/charmmgui_pdb/*
 *.fasta
 *.fai
 *.needle
+02_angstrom_benchmark/*/#*

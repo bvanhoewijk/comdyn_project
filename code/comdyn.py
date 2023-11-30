@@ -536,6 +536,7 @@ def run_needle(args):
         os.system(
             f"needle -gapopen {args.gapopen} -gapextend {args.gapextend} -asequence a.fasta -bsequence b.fasta -outfile out.fasta -auto -aformat fasta"
         )
+        print(f"needle -gapopen {args.gapopen} -gapextend {args.gapextend} -asequence a.fasta -bsequence b.fasta -outfile out.fasta -auto -aformat fasta")
         os.system(
             f"needle -gapopen {args.gapopen} -gapextend {args.gapextend} -asequence a.fasta -bsequence b.fasta -outfile out.needle -auto"
         )
