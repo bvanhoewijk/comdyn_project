@@ -113,3 +113,24 @@ bash run_calibration.sh
 cd ${PROJECT}/analysis/02_angstrom_benchmark/MD/0.1_angstrom/
 bash run_calibration.sh
 ```
+
+# 4 Add relevant items to git and push
+
+```bash
+cd ${PROJECT}/analysis/02_angstrom_benchmark/MD/0.1_angstrom/
+git add step6.6_equilibration.gro index.ndx step7_production.mdp system.top 5eqi_proa.itp toppar
+
+cd ${PROJECT}/analysis/02_angstrom_benchmark/MD/0.25_angstrom/
+git add step6.6_equilibration.gro index.ndx step7_production.mdp system.top 5eqi_proa.itp toppar
+
+cd ${PROJECT}/analysis/02_angstrom_benchmark/MD/0.5_angstrom/
+git add step6.6_equilibration.gro index.ndx step7_production.mdp system.top 5eqi_proa.itp toppar
+
+cd ${PROJECT}/analysis/02_angstrom_benchmark/MD/1.0_angstrom/
+git add step6.6_equilibration.gro index.ndx step7_production.mdp system.top 5eqi_proa.itp toppar
+
+cd ${PROJECT}/analysis/02_angstrom_benchmark/MD/baseline
+git add step6.6_equilibration.gro index.ndx step7_production.mdp system.top 5eqi_proa.itp toppar
+
+git commit -m 'calibration'
+```
