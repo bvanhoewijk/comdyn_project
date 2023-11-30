@@ -1,12 +1,12 @@
 integrator               = md
 tinit                    = 0.0
 dt                       = 0.020
-nsteps                   = 1500000
+nsteps                   = 5000000000
 
 nstxout                  = 5000
 nstvout                  = 5000
 nstfout                  = 5000
-nstlog                   = 5000
+nstlog                   = 100000
 nstenergy                = 5000
 nstxout-compressed       = 5000
 compressed-x-precision   = 100
