@@ -8,8 +8,9 @@ from pprint import pprint
 from unittest import skip
 
 import pandas as pd
-from Bio.SeqUtils import seq1  # AA to oneletter notation
 from pyfaidx import Fasta
+
+from Bio.SeqUtils import seq1  # AA to oneletter notation
 
 
 def parse_fasta_alignment(fasta_file="out.fasta", verbose=False, flip=False):
@@ -208,7 +209,6 @@ def conserved_rubberbands(
     """
     to_keep = {}
     to_skip = {}
-    in_one = []
 
     for res_tuple, bbb1, bbb2, d1 in zip(
         data_file1["res_tuple"],
@@ -216,16 +216,21 @@ def conserved_rubberbands(
         data_file1["bbb2"],
         data_file1["distance"],
     ):
+        # Residues which span a rubber band. BBB are linked to two residues.
         a = res_tuple[0]
         b = res_tuple[1]
 
-        # If in other protein:
-        a_otherfile = homology_dict[a]
-        b_otherfile = homology_dict[b]
+        # If a location is present in other protein:
+        a_otherfile = None
+        if a in homology_dict:
+            a_otherfile = homology_dict[a]
 
-        aa_a = seq1[a - 1]
-        aa_b = seq1[b - 1]
+        # If b location is present in other protein:
+        b_otherfile = None
+        if b in homology_dict:
+            b_otherfile = homology_dict[b]
 
+        ### Lookup AA residue:
         aa_otherfile_a = ""
         if a_otherfile:
             aa_otherfile_a = seq2[a_otherfile - 1]
@@ -234,7 +239,16 @@ def conserved_rubberbands(
         if b_otherfile:
             aa_otherfile_b = seq2[b_otherfile - 1]
 
-        if a_otherfile and b_otherfile:
+        if not (a_otherfile and b_otherfile):
+            reason = f"SKIP: bbb:{bbb1},{bbb2} res:({a}({aa_a}),{b}({aa_b}))-({a_otherfile}({aa_otherfile_a}),{b_otherfile}({aa_otherfile_b}))"
+            to_skip[(bbb1, bbb2)] = reason
+            if verbose:
+                print(reason)
+        else:
+            # AA residue:
+            aa_a = seq1[a - 1]
+            aa_b = seq1[b - 1]
+
             # Filter condition:
             c = data_file2["res_tuple"] == (a_otherfile, b_otherfile)
             found_distances = data_file2["distance"][c]
@@ -254,18 +268,11 @@ def conserved_rubberbands(
                     if verbose:
                         print(reason)
                     to_skip[(bbb1, bbb2)] = reason
-                continue
             else:
                 reason = f"SKIP: bbb:{bbb1},{bbb2} res:({a}({aa_a}),{b}({aa_b})). Rubber band not found in other file"
                 if verbose:
                     print(reason)
                 to_skip[(bbb1, bbb2)] = reason
-                continue
-        reason = f"SKIP: bbb:{bbb1},{bbb2} res:({a}({aa_a}),{b}({aa_b}))-({a_otherfile}({aa_otherfile_a}),{b_otherfile}({aa_otherfile_b})). Residue not found"
-        if verbose:
-            print(reason)
-        to_keep[(bbb1, bbb2)] = reason
-        to_skip[(bbb1, bbb2)] = reason
 
     print(
         f"To keep: {len(to_keep)}/{len(data_file1)} {len(to_keep)/len(data_file1)*100:.1f}%"
@@ -536,7 +543,9 @@ def run_needle(args):
         os.system(
             f"needle -gapopen {args.gapopen} -gapextend {args.gapextend} -asequence a.fasta -bsequence b.fasta -outfile out.fasta -auto -aformat fasta"
         )
-        print(f"needle -gapopen {args.gapopen} -gapextend {args.gapextend} -asequence a.fasta -bsequence b.fasta -outfile out.fasta -auto -aformat fasta")
+        print(
+            f"needle -gapopen {args.gapopen} -gapextend {args.gapextend} -asequence a.fasta -bsequence b.fasta -outfile out.fasta -auto -aformat fasta"
+        )
         os.system(
             f"needle -gapopen {args.gapopen} -gapextend {args.gapextend} -asequence a.fasta -bsequence b.fasta -outfile out.needle -auto"
         )
@@ -583,8 +592,8 @@ def main():
 
     # Calculate rubber bands to remove:
     if args.inverse:
-        print("!!! DOING THE OPPOSITE OF THIS !!!")
-        print("!!!  TO KEEP is being REMOVED  !!!")
+        print("!!!   DOING THE OPPOSITE OF THIS !!!")
+        print("!!! ITEMS TO KEEP are being REMOVED  !!!")
     print(f"Filtering '{args.itp_file1}':")
     to_keep, to_skip = conserved_rubberbands(
         data_file1=itp_content_file1,  # From
