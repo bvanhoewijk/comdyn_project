@@ -28,7 +28,7 @@ tau_t                    = 1.0 1.0  1.0
 ref_t                    = 303.15 303.15 303.15
 
 ; Pressure coupling:
-Pcoupl                   = c-rescale
+Pcoupl                   = berendsen
 Pcoupltype               = semiisotropic
 tau_p                    = 5.0
 compressibility          = 3e-4 3e-4
