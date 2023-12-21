@@ -15,7 +15,7 @@ Martini system
 [ molecules ]
 ; name        number
 PROA 1
-POPC 257
-W 7282
-NA 57
-CL 63
+POPC 386
+W 8367
+NA 101
+CL 108
