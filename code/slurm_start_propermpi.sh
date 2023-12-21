@@ -2,7 +2,7 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=48
 #SBATCH --partition=genoa
-#SBATCH --time=00:10:00
+#SBATCH --time=0:15:00
 #SBATCH --exclusive
 #SBATCH -a 1,2,3,4,5
 
@@ -18,8 +18,6 @@ done
 rep=${SLURM_ARRAY_TASK_ID}
 
 ############################################################################## Production run
-setenv GMX_MAXCONSTRWARN -1
-export OMP_NUM_THREADS=1
 
 # If TPR is defined:
 if [ -f "rep${rep}/step7_production_rep${rep}.tpr" ]; then
@@ -27,7 +25,7 @@ if [ -f "rep${rep}/step7_production_rep${rep}.tpr" ]; then
 else
     # Create TPR:
     echo "####################### TPR not defined. Creating via grompp"
-    srun gmx grompp -f step7_production.mdp -o rep${rep}/step7_production_rep${rep}.tpr -c step6.6_equilibration.gro -p system.top -n index.ndx -po rep${rep}/mdout.mdp
+    gmx grompp -f step7_production.mdp -o rep${rep}/step7_production_rep${rep}.tpr -c step6.6_equilibration.gro -p system.top -n index.ndx -po rep${rep}/mdout.mdp
 fi
 
 # If checkpoint:
@@ -37,5 +35,5 @@ if [ -f "rep${rep}/step7_production_rep${rep}.cpt" ]; then
 else
     # If no checkpoint:
     echo "####################### No checkpoint. Starting fresh run"
-    mpirun gmx_mpi mdrun -deffnm rep${rep}/step7_production_rep${rep} -cpt 1 -pin on -g rep${rep}/rep${rep}_md.log
+    mpirun -np 48 gmx_mpi mdrun -deffnm rep${rep}/step7_production_rep${rep} -cpt 1 -pin on -g rep${rep}/rep${rep}_md.log -maxh 0.25 -ntomp 1
 fi
