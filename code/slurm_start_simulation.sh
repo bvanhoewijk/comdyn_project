@@ -37,5 +37,5 @@ if [ -f "rep${rep}/step7_production_rep${rep}.cpt" ]; then
 else
     # If no checkpoint:
     echo "####################### No checkpoint. Starting fresh run"
-    mpirun gmx_mpi mdrun -deffnm rep${rep}/step7_production_rep${rep} -cpt 1 -pin on -g rep${rep}/rep${rep}_md.log
+    mpirun gmx_mpi mdrun -deffnm rep${rep}/step7_production_rep${rep} -cpt 15 -pin on -g rep${rep}/rep${rep}_md.log
 fi
