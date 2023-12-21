@@ -2,14 +2,14 @@
 ;	File 'mdout.mdp' was generated
 ;	By user: unknown (1000)
 ;	On host: Sauron
-;	At date: Wed Dec 20 16:40:58 2023
+;	At date: Thu Dec 21 09:41:46 2023
 ;
 ;	Created by:
 ;	                     :-) GROMACS - gmx grompp, 2021.6 (-:
 ;	
 ;	Executable:   /usr/local/gromacs/bin/gmx
 ;	Data prefix:  /usr/local/gromacs
-;	Working dir:  /home/bas/projects/comdyn_project/data/charmmgui_pdb/5eqi_membrane/gromacs
+;	Working dir:  /home/bas/projects/comdyn_project/analysis/02_angstrom_benchmark/MD/1.0_angstrom
 ;	Command line:
 ;	  gmx grompp -f step6.6_equilibration.mdp -o step6.6_equilibration.tpr -c step6.5_equilibration.gro -r step5_charmm2gmx.pdb -p system.top -n index.ndx
 
@@ -141,7 +141,7 @@ tc-grps                  = protein membrane solute
 tau_t                    = 1.0 1.0  1.0
 ref_t                    = 303.15 303.15 303.15
 ; pressure coupling     
-Pcoupl                   = berendsen
+Pcoupl                   = c-rescale
 Pcoupltype               = semiisotropic
 nstpcouple               = -1
 ; Time constant (ps), compressibility (1/bar) and reference P (bar)
