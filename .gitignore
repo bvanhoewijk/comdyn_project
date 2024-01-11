@@ -22,3 +22,15 @@ analysis/02_angstrom_benchmark/MD/*/step6.5*.gro
 analysis/02_angstrom_benchmark/MD/*/step6.5*.trr
 analysis/02_angstrom_benchmark/MD/*/step5_charmm2gmx.pdb
 
+# Analysis files:
+analysis/02_angstrom_benchmark/MD/*/rep1/
+analysis/02_angstrom_benchmark/MD/*/rep2/
+analysis/02_angstrom_benchmark/MD/*/rep3/
+analysis/02_angstrom_benchmark/MD/*/rep4/
+analysis/02_angstrom_benchmark/MD/*/rep5/
+analysis/02_angstrom_benchmark/MD/*/slurm*.out
+analysis/02_angstrom_benchmark/MD/*/slurm*.out
+analysis/02_angstrom_benchmark/MD/*/slurm*.out
+analysis/02_angstrom_benchmark/MD/*/slurm*.out
+analysis/02_angstrom_benchmark/MD/*/slurm*.out
+

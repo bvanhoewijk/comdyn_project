@@ -1,8 +1,13 @@
 # 1 Folder setup
 
+Folders:
+1. MD: Results of molecular dynamics runs
+2. MD_analysis: Notebooks + generated files for the purpose of interpretation of the data. 
+
 Set correct directory:
 ```bash
 PROJECT=/home/bas/projects/comdyn_project
+# PROJECT=/home/bvanhoewijk/project/comdyn_project
 cd ${PROJECT}
 ```
 
