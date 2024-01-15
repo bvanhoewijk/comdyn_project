@@ -2,7 +2,7 @@
 ;	File 'mdout.mdp' was generated
 ;	By user: unknown (1000)
 ;	On host: Sauron
-;	At date: Thu Jan 11 14:35:49 2024
+;	At date: Mon Jan 15 14:56:52 2024
 ;
 ;	Created by:
 ;	               :-) GROMACS - gmx grompp, 2023.3-conda_forge (-:
@@ -171,7 +171,7 @@ annealing-temp           =
 ; GENERATE VELOCITIES FOR STARTUP RUN
 gen_vel                  = no
 gen-temp                 = 300
-gen-seed                 = -135278793
+gen-seed                 = -595854853
 
 ; OPTIONS FOR BONDS    
 constraints              = none
