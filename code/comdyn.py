@@ -210,6 +210,12 @@ def conserved_rubberbands(
     to_keep = {}
     to_skip = {}
 
+    reasons = {}
+    reasons["RB where AA not other file"] = 0
+    reasons["both files less than_threshold"] = 0
+    reasons["both files more or equal than threshold"] = 0
+    reasons["RB not in other file"] = 0
+
     for res_tuple, bbb1, bbb2, d1 in zip(
         data_file1["res_tuple"],
         data_file1["bbb1"],
@@ -240,8 +246,9 @@ def conserved_rubberbands(
             aa_otherfile_b = seq2[b_otherfile - 1]
 
         if not (a_otherfile and b_otherfile):
-            reason = f"SKIP: bbb:{bbb1},{bbb2} res:({a}({aa_a}),{b}({aa_b}))-({a_otherfile}({aa_otherfile_a}),{b_otherfile}({aa_otherfile_b}))"
-            to_skip[(bbb1, bbb2)] = reason
+            reason = f"KEEP: bbb:{bbb1},{bbb2} res:({a}({aa_a}),{b}({aa_b}))-({a_otherfile}({aa_otherfile_a}),{b_otherfile}({aa_otherfile_b}))"
+            to_keep[(bbb1, bbb2)] = reason
+            reasons["RB where AA not other file"] += 1
             if verbose:
                 print(reason)
         else:
@@ -259,27 +266,37 @@ def conserved_rubberbands(
 
                 # So, rubberband is in both files, add tuple:
                 if diff < threshold:
+                    # Less than threshold, so add to keep:
                     reason = f"KEEP: bbb:{bbb1},{bbb2} res:({a}({aa_a}),{b}({aa_b}))-({a_otherfile}({aa_otherfile_a}),{b_otherfile}({aa_otherfile_b})) d:{d2:.2f}-{d1:.2f}={diff:.2f}"
                     if verbose:
                         print(reason)
                     to_keep[(bbb1, bbb2)] = reason
+                    reasons["both files less than_threshold"] += 1
                 else:
+                    # Not less than threshold, so add to skip:
                     reason = f"SKIP: bbb:{bbb1},{bbb2} res:({a}({aa_a}),{b}({aa_b}))-({a_otherfile}({aa_otherfile_a}),{b_otherfile}({aa_otherfile_b})) d:{d2:.2f}-{d1:.2f}={diff:.2f}. diff >= {threshold}"
                     if verbose:
                         print(reason)
                     to_skip[(bbb1, bbb2)] = reason
+                    reasons["both files more or equal than threshold"] += 1
             else:
-                reason = f"SKIP: bbb:{bbb1},{bbb2} res:({a}({aa_a}),{b}({aa_b})). Rubber band not found in other file"
+                # Rubberband not found in other file. Don't know how to compare; so keep:
+                reason = f"KEEP: bbb:{bbb1},{bbb2} res:({a}({aa_a}),{b}({aa_b})). Rubber band not found in other file"
                 if verbose:
                     print(reason)
-                to_skip[(bbb1, bbb2)] = reason
+                to_keep[(bbb1, bbb2)] = reason
+                reasons["RB not in other file"] += 1
 
     print(
-        f"To keep: {len(to_keep)}/{len(data_file1)} {len(to_keep)/len(data_file1)*100:.1f}%"
+        f"To keep: {len(set(to_keep))}/{len(data_file1)} {len(set(to_keep))/len(data_file1)*100:.1f}%"
     )
     print(
         f"To skip: {len(set(to_skip))}/{len(data_file1)} {len(set(to_skip))/len(data_file1)*100:.1f}%"
     )
+    print()
+    for key in reasons:
+        print(key, ":", reasons[key])
+
     return to_keep, to_skip
 
 
