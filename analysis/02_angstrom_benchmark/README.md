@@ -113,11 +113,15 @@ cd ${PROJECT}/analysis/02_angstrom_benchmark/MD/0.25_angstrom/
 bash run_calibration.sh
 ```
 
-### 0.1 angstrom
+### Everything:
 ```bash
-cd ${PROJECT}/analysis/02_angstrom_benchmark/MD/0.1_angstrom/
-bash run_calibration.sh
+PROJECT=/home/bas/projects/comdyn_project
+cd ${PROJECT}/analysis/02_angstrom_benchmark/MD/1.0_angstrom/ && bash run_calibration.sh
+cd ${PROJECT}/analysis/02_angstrom_benchmark/MD/0.5_angstrom/ && bash run_calibration.sh
+cd ${PROJECT}/analysis/02_angstrom_benchmark/MD/0.25_angstrom/ && bash run_calibration.sh
+cd ${PROJECT}/analysis/02_angstrom_benchmark/MD/0.1_angstrom/ && bash run_calibration.sh
 ```
+
 
 # 4 Add relevant items to git and push
 
