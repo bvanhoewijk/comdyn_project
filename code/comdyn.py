@@ -212,8 +212,8 @@ def conserved_rubberbands(
 
     reasons = {}
     reasons["RB where AA not other file"] = 0
-    reasons["both files less than_threshold"] = 0
-    reasons["both files more or equal than threshold"] = 0
+    reasons["RB in both files. Size diff < threshold"] = 0
+    reasons["RB in both files. Size diff >= threshold"] = 0
     reasons["RB not in other file"] = 0
 
     for res_tuple, bbb1, bbb2, d1 in zip(
@@ -237,25 +237,21 @@ def conserved_rubberbands(
             b_otherfile = homology_dict[b]
 
         ### Lookup AA residue:
-        aa_otherfile_a = ""
+        aa_otherfile_a = None
         if a_otherfile:
             aa_otherfile_a = seq2[a_otherfile - 1]
 
-        aa_otherfile_b = ""
+        aa_otherfile_b = None
         if b_otherfile:
             aa_otherfile_b = seq2[b_otherfile - 1]
 
         if not (a_otherfile and b_otherfile):
-            reason = f"KEEP: bbb:{bbb1},{bbb2} res:({a}({aa_a}),{b}({aa_b}))-({a_otherfile}({aa_otherfile_a}),{b_otherfile}({aa_otherfile_b}))"
-            to_keep[(bbb1, bbb2)] = reason
+            reason = f"SKIP: bbb:{bbb1},{bbb2} res:({a}({aa_otherfile_a}),{b}({aa_otherfile_b}))-({a_otherfile}({aa_otherfile_a}),{b_otherfile}({aa_otherfile_b}))"
+            to_skip[(bbb1, bbb2)] = reason
             reasons["RB where AA not other file"] += 1
             if verbose:
                 print(reason)
         else:
-            # AA residue:
-            aa_a = seq1[a - 1]
-            aa_b = seq1[b - 1]
-
             # Filter condition:
             c = data_file2["res_tuple"] == (a_otherfile, b_otherfile)
             found_distances = data_file2["distance"][c]
@@ -267,24 +263,26 @@ def conserved_rubberbands(
                 # So, rubberband is in both files, add tuple:
                 if diff < threshold:
                     # Less than threshold, so add to keep:
-                    reason = f"KEEP: bbb:{bbb1},{bbb2} res:({a}({aa_a}),{b}({aa_b}))-({a_otherfile}({aa_otherfile_a}),{b_otherfile}({aa_otherfile_b})) d:{d2:.2f}-{d1:.2f}={diff:.2f}"
+                    reason = f"KEEP: bbb:{bbb1},{bbb2} res:({a}({aa_otherfile_a}),{b}({aa_otherfile_b}))-({a_otherfile}({aa_otherfile_a}),{b_otherfile}({aa_otherfile_b})) d:{d2:.2f}-{d1:.2f}={diff:.2f}"
                     if verbose:
                         print(reason)
                     to_keep[(bbb1, bbb2)] = reason
-                    reasons["both files less than_threshold"] += 1
+                    reasons["RB in both files. Size diff < threshold"] += 1
                 else:
                     # Not less than threshold, so add to skip:
-                    reason = f"SKIP: bbb:{bbb1},{bbb2} res:({a}({aa_a}),{b}({aa_b}))-({a_otherfile}({aa_otherfile_a}),{b_otherfile}({aa_otherfile_b})) d:{d2:.2f}-{d1:.2f}={diff:.2f}. diff >= {threshold}"
+                    reason = f"SKIP: bbb:{bbb1},{bbb2} res:({a}({aa_otherfile_a}),{b}({aa_otherfile_b}))-({a_otherfile}({aa_otherfile_a}),{b_otherfile}({aa_otherfile_b})) d:{d2:.2f}-{d1:.2f}={diff:.2f}. diff >= {threshold}"
                     if verbose:
                         print(reason)
                     to_skip[(bbb1, bbb2)] = reason
-                    reasons["both files more or equal than threshold"] += 1
+                    reasons["RB in both files. Size diff >= threshold"] += 1
             else:
+                if len(found_distances):
+                    print(len(found_distances))
                 # Rubberband not found in other file. Don't know how to compare; so keep:
-                reason = f"KEEP: bbb:{bbb1},{bbb2} res:({a}({aa_a}),{b}({aa_b})). Rubber band not found in other file"
+                reason = f"SKIP: bbb:{bbb1},{bbb2} res:({a}({aa_otherfile_a}),{b}({aa_otherfile_b})). Rubber band not found in other file"
                 if verbose:
                     print(reason)
-                to_keep[(bbb1, bbb2)] = reason
+                to_skip[(bbb1, bbb2)] = reason
                 reasons["RB not in other file"] += 1
 
     print(

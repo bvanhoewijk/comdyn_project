@@ -4,6 +4,7 @@
 
 biopython
 pyfaidx
-
+pandas
+numpy
 
 conda install -c bioconda emboss

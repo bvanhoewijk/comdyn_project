@@ -2,10 +2,10 @@
 ;	File 'mdout.mdp' was generated
 ;	By user: unknown (1000)
 ;	On host: Sauron
-;	At date: Mon Jan 15 14:34:13 2024
+;	At date: Tue Jan 16 15:13:17 2024
 ;
 ;	Created by:
-;	               :-) GROMACS - gmx grompp, 2023.3-conda_forge (-:
+;	               :-) GROMACS - gmx grompp, 2023.1-conda_forge (-:
 ;	
 ;	Executable:   /home/bas/miniconda3/envs/md_production/bin.AVX2_256/gmx
 ;	Data prefix:  /home/bas/miniconda3/envs/md_production
@@ -171,7 +171,7 @@ annealing-temp           =
 ; GENERATE VELOCITIES FOR STARTUP RUN
 gen_vel                  = no
 gen-temp                 = 300
-gen-seed                 = 1503520685
+gen-seed                 = -126950148
 
 ; OPTIONS FOR BONDS    
 constraints              = none
