@@ -1,17 +1,13 @@
 #!/usr/bin/env python
 
 import argparse
-from genericpath import isfile
 import os
 import re
 import sys
-from pprint import pprint
-from unittest import skip
 
 import pandas as pd
-from pyfaidx import Fasta
-
 from Bio.SeqUtils import seq1  # AA to oneletter notation
+from pyfaidx import Fasta
 
 
 def parse_fasta_alignment(fasta_file="out.fasta", verbose=False, flip=False):
@@ -74,7 +70,8 @@ def parse_fasta_alignment(fasta_file="out.fasta", verbose=False, flip=False):
             continue
     return translation_dict
 
-def parse_atom_block(itp=None, verbose=False, debug=False):
+
+def parse_atom_block(itp=None, debug=False):
     """Parse atom block
 
     Args:
@@ -173,6 +170,7 @@ def conserved_rubberbands(
             aa_otherfile_b = seq2[b_otherfile - 1]
 
         if not (a_otherfile or b_otherfile):
+            # FIXME residue from seq1 not used:
             reason = f"SKIP: bbb:{bbb1},{bbb2} res:({a}({aa_otherfile_a}),{b}({aa_otherfile_b}))-({a_otherfile}({aa_otherfile_a}),{b_otherfile}({aa_otherfile_b}))"
             to_skip[(bbb1, bbb2)] = reason
             reasons["RB where AA not other file"] += 1
@@ -282,10 +280,8 @@ def parse_itp(itp_file, verbose=False, debug=False):
     cg2resnr = dict(zip(atom_block["cgnr"], atom_block["resnr"]))
     cg2resname = dict(zip(atom_block["cgnr"], atom_block["residu"]))
 
-    combined_data = parse_rubber_band_block(
-        itp=itp_file, debug=debug
-    )
-    
+    combined_data = parse_rubber_band_block(itp=itp_file, debug=debug)
+
     combined_data["resnr1"] = combined_data["bbb1"].apply(lambda x: cg2resnr[x])
     combined_data["resnr2"] = combined_data["bbb2"].apply(lambda x: cg2resnr[x])
     combined_data["residu1"] = combined_data["bbb1"].apply(lambda x: cg2resname[x])
@@ -295,9 +291,9 @@ def parse_itp(itp_file, verbose=False, debug=False):
         lambda x: (x["resnr1"], x["resnr2"]), axis=1
     )
 
-        # Add prefix if PDB does not start at the AA number1:
-    if min(combined_data['resnr1']) != 1:
-        aa_seq = "X" * (min(combined_data['resnr1']) - 1) + aa_seq
+    # Add prefix if PDB does not start at the AA number1:
+    if min(combined_data["resnr1"]) != 1:
+        aa_seq = "X" * (min(combined_data["resnr1"]) - 1) + aa_seq
 
     return combined_data, aa_seq
 
@@ -524,7 +520,6 @@ def main():
         debug=args.debug,
     )
 
-
     with open("a.fasta", "w") as f:
         f.write(">a\n")
         f.write(aa_seq1 + "\n")
@@ -537,7 +532,7 @@ def main():
     homology_dict1 = parse_fasta_alignment(
         fasta_file="out.fasta", flip=False, verbose=args.debug
     )
-    
+
     # Calculate rubber bands to remove:
     if args.inverse:
         print("!!!   DOING THE OPPOSITE OF THIS !!!")
