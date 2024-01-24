@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import argparse
+from genericpath import isfile
 import os
 import re
 import sys
@@ -72,80 +73,6 @@ def parse_fasta_alignment(fasta_file="out.fasta", verbose=False, flip=False):
             # Don't care about this option so we don't store it in a dict.
             continue
     return translation_dict
-
-
-def parse_rubber_band_block3(itp=None, verbose=False, debug=False):
-    """Given an ITP file, parses the rubber/elastic band block.
-
-    Args:
-        itp (str, required): itp file. Defaults to None.
-        verbose (bool, optional): complain. Defaults to False.
-        debug (bool, optional): complain. Defaults to False.
-
-    Returns:
-        DataFrame: Full rubber band block. With fields: bbb1, bbb2, chain, distance.
-    """
-    fh = open(itp, "r")
-    rubber_section = False
-    line_nr = 1
-    rubber_bands = []
-    for line in fh:
-        if line.startswith("; Rubber band"):
-            if debug:
-                print(f"Start rubber band section: {line_nr}")
-            rubber_section = True
-
-        if rubber_section:
-            line = line.strip()
-            line = re.split(r" +", line)
-            if line[0].startswith(";"):
-                pass
-            elif len(line) == 5:
-                rubber_bands.append(
-                    [int(line[0]), int(line[1]), int(line[2]), float(line[3])]
-                )
-                # rubber_bands[(int(line[1]), int(line[0]))] = float(line[3])
-            else:
-                if debug:
-                    print(f"End rubber band section: {line_nr-1}")
-                rubber_section = False
-        line_nr += 1
-    rubber_bands = pd.DataFrame(rubber_bands)
-    rubber_bands.columns = ["bbb1", "bbb2", "chain", "distance"]
-    return rubber_bands
-
-
-def parse_rubber_band_block1(itp=None, verbose=False):
-    fh = open(itp, "r")
-    rubber_section = False
-    line_nr = 1
-    rubber_bands = []
-    for line in fh:
-        if line.startswith("#define RUBBER_FC"):
-            if verbose:
-                print(f"Start rubber band section: {line_nr}")
-            rubber_section = True
-
-        if rubber_section:
-            if line.startswith("#"):
-                continue
-            line = line.strip()
-            line = re.split(r" +", line)
-            if line[0].startswith(";"):
-                pass
-            elif len(line) == 5:
-                rubber_bands.append(
-                    [int(line[0]), int(line[1]), int(line[2]), float(line[3])]
-                )
-            else:
-                if verbose:
-                    print(f"End rubber band section: {line_nr-1}")
-                rubber_section = False
-        line_nr += 1
-    rubber_bands = pd.DataFrame(rubber_bands)
-    rubber_bands.columns = ["bbb1", "bbb2", "chain", "distance"]
-    return rubber_bands
-
 
 def parse_atom_block(itp=None, verbose=False, debug=False):
     """Parse atom block
@@ -245,7 +172,7 @@ def conserved_rubberbands(
         if b_otherfile:
             aa_otherfile_b = seq2[b_otherfile - 1]
 
-        if not (a_otherfile and b_otherfile):
+        if not (a_otherfile or b_otherfile):
             reason = f"SKIP: bbb:{bbb1},{bbb2} res:({a}({aa_otherfile_a}),{b}({aa_otherfile_b}))-({a_otherfile}({aa_otherfile_a}),{b_otherfile}({aa_otherfile_b}))"
             to_skip[(bbb1, bbb2)] = reason
             reasons["RB where AA not other file"] += 1
@@ -298,20 +225,30 @@ def conserved_rubberbands(
     return to_keep, to_skip
 
 
-def parse_rubber_band_block1(itp=None, verbose=False, debug=False):
+def parse_rubber_band_block(itp=None, debug=False):
+    """Given an ITP file, parses the rubber/elastic band block.
+
+    Args:
+        itp (str, required): itp file. Defaults to None.
+        verbose (bool, optional): complain. Defaults to False.
+        debug (bool, optional): complain. Defaults to False.
+
+    Returns:
+        DataFrame: Full rubber band block. With fields: bbb1, bbb2, chain, distance.
+    """
     fh = open(itp, "r")
     rubber_section = False
-    line_nr = 1
+    line_nr = 0
     rubber_bands = []
     for line in fh:
-        if line.startswith("#define RUBBER_FC"):
-            if verbose:
-                print(f"Start rubber band section: {line_nr}")
+        line_nr += 1
+        if line.startswith("#"):
+            continue
+        if line.startswith("; Rubber band"):
+            print(f"Start rubber band section: {line_nr}")
             rubber_section = True
 
         if rubber_section:
-            if line.startswith("#"):
-                continue
             line = line.strip()
             line = re.split(r" +", line)
             if line[0].startswith(";"):
@@ -321,16 +258,14 @@ def parse_rubber_band_block1(itp=None, verbose=False, debug=False):
                     [int(line[0]), int(line[1]), int(line[2]), float(line[3])]
                 )
             else:
-                if verbose:
-                    print(f"End rubber band section: {line_nr-1}")
+                print(f"End rubber band section: {line_nr-1}")
                 rubber_section = False
-        line_nr += 1
     rubber_bands = pd.DataFrame(rubber_bands)
     rubber_bands.columns = ["bbb1", "bbb2", "chain", "distance"]
     return rubber_bands
 
 
-def parse_itp(itp_file, verbose=False, debug=False, martini1=False):
+def parse_itp(itp_file, verbose=False, debug=False):
     """Wrapper fucntion to parse the full ITP file
 
     Args:
@@ -347,16 +282,10 @@ def parse_itp(itp_file, verbose=False, debug=False, martini1=False):
     cg2resnr = dict(zip(atom_block["cgnr"], atom_block["resnr"]))
     cg2resname = dict(zip(atom_block["cgnr"], atom_block["residu"]))
 
-    combined_data = None
-    if martini1:
-        combined_data = parse_rubber_band_block1(
-            itp=itp_file, verbose=verbose, debug=debug
-        )
-    else:
-        combined_data = parse_rubber_band_block3(
-            itp=itp_file, verbose=verbose, debug=debug
-        )
-
+    combined_data = parse_rubber_band_block(
+        itp=itp_file, debug=debug
+    )
+    
     combined_data["resnr1"] = combined_data["bbb1"].apply(lambda x: cg2resnr[x])
     combined_data["resnr2"] = combined_data["bbb2"].apply(lambda x: cg2resnr[x])
     combined_data["residu1"] = combined_data["bbb1"].apply(lambda x: cg2resname[x])
@@ -365,6 +294,10 @@ def parse_itp(itp_file, verbose=False, debug=False, martini1=False):
     combined_data["res_tuple"] = combined_data.apply(
         lambda x: (x["resnr1"], x["resnr2"]), axis=1
     )
+
+        # Add prefix if PDB does not start at the AA number1:
+    if min(combined_data['resnr1']) != 1:
+        aa_seq = "X" * (min(combined_data['resnr1']) - 1) + aa_seq
 
     return combined_data, aa_seq
 
@@ -529,7 +462,6 @@ def print_args(args):
     print(f"itp file1 : {args.itp_file1}")
     print(f"itp file2 : {args.itp_file2}")
     print(f"Threshold : {args.nanometer}nm")
-    print(f"Martini1  : {args.martini1}")
     print("-------------------------")
     print("NEEDLE settings:")
     print(f"gapopen   : {args.gapopen}")
@@ -555,6 +487,9 @@ def run_needle(args):
     """
     # TODO: make a.fasta, b.fasta tmp files or arguments in getopt.
     try:
+        if os.path.isfile("out.fasta"):
+            print("Remove old alignment file 'out.fasta'")
+            os.remove("out.fasta")
         os.system(
             f"needle -gapopen {args.gapopen} -gapextend {args.gapextend} -asequence a.fasta -bsequence b.fasta -outfile out.fasta -auto -aformat fasta"
         )
@@ -581,14 +516,14 @@ def main():
         itp_file=args.itp_file1,
         verbose=args.verbose,
         debug=args.debug,
-        martini1=args.martini1,
     )
+
     itp_content_file2, aa_seq2 = parse_itp(
         itp_file=args.itp_file2,
         verbose=args.verbose,
         debug=args.debug,
-        martini1=args.martini1,
     )
+
 
     with open("a.fasta", "w") as f:
         f.write(">a\n")
@@ -599,12 +534,10 @@ def main():
         f.write(aa_seq2 + "\n")
 
     run_needle(args)
-
-    # Parse alignment (fasta format)
     homology_dict1 = parse_fasta_alignment(
         fasta_file="out.fasta", flip=False, verbose=args.debug
     )
-
+    
     # Calculate rubber bands to remove:
     if args.inverse:
         print("!!!   DOING THE OPPOSITE OF THIS !!!")
