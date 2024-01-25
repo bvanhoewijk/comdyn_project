@@ -147,38 +147,41 @@ def conserved_rubberbands(
         data_file1["distance"],
     ):
         # Residues which span a rubber band. BBB are linked to two residues.
-        a = res_tuple[0]
-        b = res_tuple[1]
+        resnr1_file1 = res_tuple[0]
+        resnr2_file1 = res_tuple[1]
 
         # If a location is present in other protein:
-        a_otherfile = None
-        if a in homology_dict:
-            a_otherfile = homology_dict[a]
+        resnr1_file2 = None
+        if resnr1_file1 in homology_dict:
+            resnr1_file2 = homology_dict[resnr1_file1]
 
         # If b location is present in other protein:
-        b_otherfile = None
-        if b in homology_dict:
-            b_otherfile = homology_dict[b]
+        resnr2_file2 = None
+        if resnr2_file1 in homology_dict:
+            resnr2_file2 = homology_dict[resnr2_file1]
 
-        ### Lookup AA residue:
-        aa_otherfile_a = None
-        if a_otherfile:
-            aa_otherfile_a = seq2[a_otherfile - 1]
+        ### Lookup AA residues:
+        aa1_file1 = seq1[resnr1_file1-1]
+        aa2_file1 = seq1[resnr2_file1-1]
+        aa1_file2 = None
+        aa2_file2 = None
 
-        aa_otherfile_b = None
-        if b_otherfile:
-            aa_otherfile_b = seq2[b_otherfile - 1]
+        if resnr1_file2:
+            aa1_file2 = seq2[resnr1_file2 - 1]
+        if resnr2_file2:
+            aa2_file2 = seq2[resnr2_file2 - 1]
 
-        if not (a_otherfile or b_otherfile):
+        info = f"bbb:{bbb1},{bbb2}: {resnr1_file1}({aa1_file1})-{resnr2_file1}({aa2_file1}) == {resnr1_file2}({aa1_file2})-{resnr2_file2}({aa2_file2})"
+        if not (resnr1_file2 or resnr2_file2):
             # FIXME residue from seq1 not used:
-            reason = f"SKIP: bbb:{bbb1},{bbb2} res:({a}({aa_otherfile_a}),{b}({aa_otherfile_b}))-({a_otherfile}({aa_otherfile_a}),{b_otherfile}({aa_otherfile_b}))"
+            reason = f"SKIP: {info}. RB where AA not other file"
             to_skip[(bbb1, bbb2)] = reason
             reasons["RB where AA not other file"] += 1
             if verbose:
                 print(reason)
         else:
             # Filter condition:
-            c = data_file2["res_tuple"] == (a_otherfile, b_otherfile)
+            c = data_file2["res_tuple"] == (resnr1_file2, resnr2_file2)
             found_distances = data_file2["distance"][c]
 
             if len(found_distances) == 1:
@@ -188,14 +191,14 @@ def conserved_rubberbands(
                 # So, rubberband is in both files, add tuple:
                 if diff < threshold:
                     # Less than threshold, so add to keep:
-                    reason = f"KEEP: bbb:{bbb1},{bbb2} res:({a}({aa_otherfile_a}),{b}({aa_otherfile_b}))-({a_otherfile}({aa_otherfile_a}),{b_otherfile}({aa_otherfile_b})) d:{d2:.2f}-{d1:.2f}={diff:.2f}"
+                    reason = f"KEEP: {info} d:{d2:.2f}-{d1:.2f}={diff:.2f}. diff < {threshold}"
                     if verbose:
                         print(reason)
                     to_keep[(bbb1, bbb2)] = reason
                     reasons["RB in both files. Size diff < threshold"] += 1
                 else:
                     # Not less than threshold, so add to skip:
-                    reason = f"SKIP: bbb:{bbb1},{bbb2} res:({a}({aa_otherfile_a}),{b}({aa_otherfile_b}))-({a_otherfile}({aa_otherfile_a}),{b_otherfile}({aa_otherfile_b})) d:{d2:.2f}-{d1:.2f}={diff:.2f}. diff >= {threshold}"
+                    reason = f"SKIP: {info} d:{d2:.2f}-{d1:.2f}={diff:.2f}. diff >= {threshold}"
                     if verbose:
                         print(reason)
                     to_skip[(bbb1, bbb2)] = reason
@@ -204,7 +207,7 @@ def conserved_rubberbands(
                 if len(found_distances):
                     print(len(found_distances))
                 # Rubberband not found in other file. Don't know how to compare; so keep:
-                reason = f"SKIP: bbb:{bbb1},{bbb2} res:({a}({aa_otherfile_a}),{b}({aa_otherfile_b})). Rubber band not found in other file"
+                reason = f"SKIP: {info}. Rubber band not found in other file"
                 if verbose:
                     print(reason)
                 to_skip[(bbb1, bbb2)] = reason
@@ -274,7 +277,7 @@ def parse_itp(itp_file, verbose=False, debug=False):
         DataFrame: Dataframe with fields: "bbb1" "bbb2"	"chain"	"distance" "resnr1" "resnr2" "residu1" "residu2"
         str: amino acid sequence
     """
-    atom_block = parse_atom_block(itp=itp_file, verbose=verbose, debug=debug)
+    atom_block = parse_atom_block(itp=itp_file, debug=debug)
     aa_seq = seq1("".join(atom_block["residu"].to_list()))
 
     cg2resnr = dict(zip(atom_block["cgnr"], atom_block["resnr"]))
@@ -314,21 +317,23 @@ def write_itp(itp_in=None, itp_out="testje.itp", to_skip=None, verbose=False):
     out_fh = open(itp_out, "w")
     fh = open(itp_in, "r")
     rubber_section = False
-    line_nr = 1
+    line_nr = 0
     for line in fh:
+        line_nr += 1
         if line.startswith("; Rubber band"):
             out_fh.write(line)
             written += 1
-            print(f"Start rubber band section: {line_nr}")
+
             if verbose:
                 print(f"Start rubber band section: {line_nr}")
             rubber_section = True
+
             continue
         if rubber_section:
             line_strip = line.strip()
             fields = re.split(r" +", line_strip)
+            # Comment lines. Don't do anything.
             if line and (line[0].startswith(";") or line[0].startswith("#")):
-                # Comment lines. Don't do anything.
                 out_fh.write(line)
                 written += 1
                 continue
@@ -349,7 +354,7 @@ def write_itp(itp_in=None, itp_out="testje.itp", to_skip=None, verbose=False):
         if not rubber_section:
             out_fh.write(line)
             written += 1
-        line_nr += 1
+
     print(f"WRITTEN {written} lines")
     print(f"SKIPPED {removed} lines")
 
@@ -423,13 +428,7 @@ def args_parser():
         action="store_true",
         help="Complain more. (Default: %(default)s)",
     )
-    parser.add_argument(
-        "--martini1",
-        dest="martini1",
-        default=False,
-        action="store_true",
-        help="Parse martini v1 fileformat. (Default: %(default)s)",
-    )
+
     parser.add_argument(
         "--write",
         dest="write",
@@ -457,7 +456,7 @@ def print_args(args):
     print("Arguments:")
     print(f"itp file1 : {args.itp_file1}")
     print(f"itp file2 : {args.itp_file2}")
-    print(f"Threshold : {args.nanometer}nm")
+    print(f"Threshold : {args.nanometer}nm ({args.nanometer*10}A)")
     print("-------------------------")
     print("NEEDLE settings:")
     print(f"gapopen   : {args.gapopen}")
@@ -467,7 +466,7 @@ def print_args(args):
     print("-------------------------")
     print(f"write itp : {args.write}")
     if args.write:
-        print(f"ipt out   : {args.itp_out}")
+        print(f"itp out   : {args.itp_out}")
     print(f"verbose   : {args.verbose}")
     print(f"debug     : {args.debug}")
     print("-------------------------")
@@ -486,10 +485,11 @@ def run_needle(args):
         if os.path.isfile("out.fasta"):
             print("Remove old alignment file 'out.fasta'")
             os.remove("out.fasta")
-        os.system(
+        
+        print(
             f"needle -gapopen {args.gapopen} -gapextend {args.gapextend} -asequence a.fasta -bsequence b.fasta -outfile out.fasta -auto -aformat fasta"
         )
-        print(
+        os.system(
             f"needle -gapopen {args.gapopen} -gapextend {args.gapextend} -asequence a.fasta -bsequence b.fasta -outfile out.fasta -auto -aformat fasta"
         )
         os.system(
@@ -508,17 +508,20 @@ def main():
     # DO STUFF
 
     # Parse ITP files:
+    print(f"Parsing \"{os.path.basename(args.itp_file1)}\"")
     itp_content_file1, aa_seq1 = parse_itp(
         itp_file=args.itp_file1,
         verbose=args.verbose,
         debug=args.debug,
     )
 
+    print(f"\nParsing \"{os.path.basename(args.itp_file2)}\"")
     itp_content_file2, aa_seq2 = parse_itp(
         itp_file=args.itp_file2,
         verbose=args.verbose,
         debug=args.debug,
     )
+    print()
 
     with open("a.fasta", "w") as f:
         f.write(">a\n")
@@ -529,6 +532,7 @@ def main():
         f.write(aa_seq2 + "\n")
 
     run_needle(args)
+    print()
     homology_dict1 = parse_fasta_alignment(
         fasta_file="out.fasta", flip=False, verbose=args.debug
     )
@@ -537,7 +541,8 @@ def main():
     if args.inverse:
         print("!!!   DOING THE OPPOSITE OF THIS !!!")
         print("!!! ITEMS TO KEEP are being REMOVED  !!!")
-    print(f"Filtering '{args.itp_file1}':")
+
+    # Conserved rubber bands:
     to_keep, to_skip = conserved_rubberbands(
         data_file1=itp_content_file1,  # From
         data_file2=itp_content_file2,  # To
@@ -550,21 +555,17 @@ def main():
 
     print()
 
+    if args.inverse:
+        to_skip = to_keep
+
     if args.write:
-        if args.inverse:
-            write_itp(
-                itp_in=args.itp_file1,
-                itp_out=args.itp_out,
-                to_skip=to_keep,
-                verbose=args.debug,
-            )
-        else:
-            write_itp(
-                itp_in=args.itp_file1,
-                itp_out=args.itp_out,
-                to_skip=to_skip,
-                verbose=args.debug,
-            )
+        # Write:
+        write_itp(
+            itp_in=args.itp_file1,
+            itp_out=args.itp_out,
+            to_skip=to_skip,
+            verbose=args.debug,
+        )
     else:
         print("\n!!!! NOT WRITING NEW ITP FILES !!!!")
 
