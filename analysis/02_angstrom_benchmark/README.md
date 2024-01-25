@@ -30,7 +30,7 @@ python code/comdyn.py \
 --itp_file2 ${PROJECT}/data/charmmgui_pdb/4zw9_membrane/gromacs/4zw9_proa.itp \
 --itp_out ${PROJECT}/analysis/02_angstrom_benchmark/MD/1.0_angstrom/5eqi_proa.itp \
 --nm 0.1 \
---martini1 --write
+--write
 ```
 
 ## 0.5 Angstrom threshold
@@ -40,7 +40,7 @@ python code/comdyn.py \
 --itp_file2 ${PROJECT}/data/charmmgui_pdb/4zw9_membrane/gromacs/4zw9_proa.itp \
 --itp_out ${PROJECT}/analysis/02_angstrom_benchmark/MD/0.5_angstrom/5eqi_proa.itp \
 --nm 0.05 \
---martini1 --write
+--write
 ```
 
 ## 0.25 Angstrom threshold
@@ -50,7 +50,7 @@ python code/comdyn.py \
 --itp_file2 ${PROJECT}/data/charmmgui_pdb/4zw9_membrane/gromacs/4zw9_proa.itp \
 --itp_out ${PROJECT}/analysis/02_angstrom_benchmark/MD/0.25_angstrom/5eqi_proa.itp \
 --nm 0.025 \
---martini1 --write
+--write
 ```
 
 ## 0.1 Angstrom threshold
@@ -61,7 +61,7 @@ python code/comdyn.py \
 --itp_file2 ${PROJECT}/data/charmmgui_pdb/4zw9_membrane/gromacs/4zw9_proa.itp \
 --itp_out ${PROJECT}/analysis/02_angstrom_benchmark/MD/0.1_angstrom/5eqi_proa.itp \
 --nm 0.01 \
---martini1 --write
+--write
 ```
 
 
@@ -85,6 +85,8 @@ cp ${PROJECT}/code/mdp/* ${PROJECT}/analysis/02_angstrom_benchmark/MD/0.5_angstr
 cp ${PROJECT}/code/mdp/* ${PROJECT}/analysis/02_angstrom_benchmark/MD/0.25_angstrom/
 cp ${PROJECT}/code/mdp/* ${PROJECT}/analysis/02_angstrom_benchmark/MD/0.1_angstrom/
 ```
+
+
 
 ## 3.2 Run
 
@@ -120,6 +122,8 @@ cd ${PROJECT}/analysis/02_angstrom_benchmark/MD/1.0_angstrom/ && bash run_calibr
 cd ${PROJECT}/analysis/02_angstrom_benchmark/MD/0.5_angstrom/ && bash run_calibration.sh
 cd ${PROJECT}/analysis/02_angstrom_benchmark/MD/0.25_angstrom/ && bash run_calibration.sh
 cd ${PROJECT}/analysis/02_angstrom_benchmark/MD/0.1_angstrom/ && bash run_calibration.sh
+
+
 ```
 
 

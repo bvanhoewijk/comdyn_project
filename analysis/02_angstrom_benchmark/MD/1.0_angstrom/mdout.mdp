@@ -2,13 +2,13 @@
 ;	File 'mdout.mdp' was generated
 ;	By user: unknown (1000)
 ;	On host: Sauron
-;	At date: Tue Jan 16 15:01:52 2024
+;	At date: Thu Jan 25 13:16:08 2024
 ;
 ;	Created by:
-;	               :-) GROMACS - gmx grompp, 2023.1-conda_forge (-:
+;	                     :-) GROMACS - gmx grompp, 2023.3 (-:
 ;	
-;	Executable:   /home/bas/miniconda3/envs/md_production/bin.AVX2_256/gmx
-;	Data prefix:  /home/bas/miniconda3/envs/md_production
+;	Executable:   /usr/local/gromacs/bin/gmx
+;	Data prefix:  /usr/local/gromacs
 ;	Working dir:  /home/bas/projects/comdyn_project/analysis/02_angstrom_benchmark/MD/1.0_angstrom
 ;	Command line:
 ;	  gmx grompp -f step6.6_equilibration.mdp -o step6.6_equilibration.tpr -c step6.5_equilibration.gro -r step5_charmm2gmx.pdb -p system.top -n index.ndx
@@ -171,7 +171,7 @@ annealing-temp           =
 ; GENERATE VELOCITIES FOR STARTUP RUN
 gen_vel                  = no
 gen-temp                 = 300
-gen-seed                 = -79724587
+gen-seed                 = -4477836
 
 ; OPTIONS FOR BONDS    
 constraints              = none
