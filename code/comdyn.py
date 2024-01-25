@@ -71,7 +71,7 @@ def parse_fasta_alignment(fasta_file="out.fasta", verbose=False, flip=False):
     return translation_dict
 
 
-def parse_atom_block(itp=None, debug=False):
+def parse_atom_block(itp=None, verbose=False):
     """Parse atom block
 
     Args:
@@ -87,7 +87,7 @@ def parse_atom_block(itp=None, debug=False):
     atom_block = []
     for line in fh:
         if line.startswith("[ atoms ]"):
-            if debug:
+            if verbose:
                 print(f"FIRST ATOM section linenr: {line_nr}")
             atom_section = True
 
@@ -97,7 +97,7 @@ def parse_atom_block(itp=None, debug=False):
             if fields[0].startswith("#"):
                 pass
             elif len(line) == 0:
-                if debug:
+                if verbose:
                     print(f"LAST ATOM section linenr : {line_nr-1}")
                 atom_section = False
             elif len(fields) > 6:
@@ -116,7 +116,7 @@ def parse_atom_block(itp=None, debug=False):
 
 
 def conserved_rubberbands(
-    data_file1, data_file2, homology_dict, seq1, seq2, threshold=1.0, verbose=False
+    data_file1, data_file2, homology_dict, seq1, seq2, threshold=0.1, verbose=False
 ):
     """
     Get the rubber bands to keep.
@@ -125,7 +125,9 @@ def conserved_rubberbands(
         data_file1 (DataFrame): Dataframe obtained from `parse_itp()`
         data_file2 (DataFrame): Dataframe obtained from `parse_itp()`
         homology_dict (dict): Coordinate translation dict obtained from `parse_fasta_alignment()`
-        threshold (float, optional): Threshold upon rubber bands are not conserved (in angstrom). Defaults to 1.0.
+        seq1 (str): Amino acid sequence of file1
+        seq2 (str): Amino acid sequence of file2
+        threshold (float, optional): Threshold upon rubber bands are not conserved (in nm). Defaults to 0.1.
         verbose (bool, optional): complain. Defaults to False.
 
     Returns:
@@ -175,8 +177,8 @@ def conserved_rubberbands(
         if not (resnr1_file2 or resnr2_file2):
             # FIXME residue from seq1 not used:
             reason = f"SKIP: {info}. RB where AA not other file"
-            to_skip[(bbb1, bbb2)] = reason
             reasons["RB where AA not other file"] += 1
+            to_skip[(bbb1, bbb2)] = reason
             if verbose:
                 print(reason)
         else:
@@ -191,27 +193,27 @@ def conserved_rubberbands(
                 # So, rubberband is in both files, add tuple:
                 if diff < threshold:
                     # Less than threshold, so add to keep:
-                    reason = f"KEEP: {info} d:{d2:.2f}-{d1:.2f}={diff:.2f}. diff < {threshold}"
+                    reason = f"KEEP: {info}. d:{d2:.2f}-{d1:.2f}={diff:.2f}. diff < {threshold}"
+                    reasons["RB in both files. Size diff < threshold"] += 1
                     if verbose:
                         print(reason)
                     to_keep[(bbb1, bbb2)] = reason
-                    reasons["RB in both files. Size diff < threshold"] += 1
                 else:
                     # Not less than threshold, so add to skip:
                     reason = f"SKIP: {info} d:{d2:.2f}-{d1:.2f}={diff:.2f}. diff >= {threshold}"
+                    reasons["RB in both files. Size diff >= threshold"] += 1
                     if verbose:
                         print(reason)
                     to_skip[(bbb1, bbb2)] = reason
-                    reasons["RB in both files. Size diff >= threshold"] += 1
             else:
                 if len(found_distances):
                     print(len(found_distances))
                 # Rubberband not found in other file. Don't know how to compare; so keep:
+                reasons["RB not in other file"] += 1
                 reason = f"SKIP: {info}. Rubber band not found in other file"
                 if verbose:
                     print(reason)
                 to_skip[(bbb1, bbb2)] = reason
-                reasons["RB not in other file"] += 1
 
     print(
         f"To keep: {len(set(to_keep))}/{len(data_file1)} {len(set(to_keep))/len(data_file1)*100:.1f}%"
@@ -226,13 +228,11 @@ def conserved_rubberbands(
     return to_keep, to_skip
 
 
-def parse_rubber_band_block(itp=None, debug=False):
+def parse_rubber_band_block(itp=None):
     """Given an ITP file, parses the rubber/elastic band block.
 
     Args:
         itp (str, required): itp file. Defaults to None.
-        verbose (bool, optional): complain. Defaults to False.
-        debug (bool, optional): complain. Defaults to False.
 
     Returns:
         DataFrame: Full rubber band block. With fields: bbb1, bbb2, chain, distance.
@@ -245,6 +245,7 @@ def parse_rubber_band_block(itp=None, debug=False):
         line_nr += 1
         if line.startswith("#"):
             continue
+
         if line.startswith("; Rubber band"):
             print(f"Start rubber band section: {line_nr}")
             rubber_section = True
@@ -266,7 +267,7 @@ def parse_rubber_band_block(itp=None, debug=False):
     return rubber_bands
 
 
-def parse_itp(itp_file, verbose=False, debug=False):
+def parse_itp(itp_file, verbose=False):
     """Wrapper fucntion to parse the full ITP file
 
     Args:
@@ -277,13 +278,13 @@ def parse_itp(itp_file, verbose=False, debug=False):
         DataFrame: Dataframe with fields: "bbb1" "bbb2"	"chain"	"distance" "resnr1" "resnr2" "residu1" "residu2"
         str: amino acid sequence
     """
-    atom_block = parse_atom_block(itp=itp_file, debug=debug)
+    atom_block = parse_atom_block(itp=itp_file, verbose=verbose)
     aa_seq = seq1("".join(atom_block["residu"].to_list()))
 
     cg2resnr = dict(zip(atom_block["cgnr"], atom_block["resnr"]))
     cg2resname = dict(zip(atom_block["cgnr"], atom_block["residu"]))
 
-    combined_data = parse_rubber_band_block(itp=itp_file, debug=debug)
+    combined_data = parse_rubber_band_block(itp=itp_file)
 
     combined_data["resnr1"] = combined_data["bbb1"].apply(lambda x: cg2resnr[x])
     combined_data["resnr2"] = combined_data["bbb2"].apply(lambda x: cg2resnr[x])
@@ -307,7 +308,7 @@ def write_itp(itp_in=None, itp_out="testje.itp", to_skip=None, verbose=False):
     Args:
         itp_in (DataFrame, required): Input itp dataframe.
         itp_out (str, optional): Output itp file. Defaults to "testje.itp".
-        to_remove (set of tuples, required): Rubberbands to remove.
+        to_skip (set of tuples, required): Rubberbands to remove.
         verbose (bool, optional): Complain. Defaults to False.
     """
 
@@ -373,7 +374,7 @@ def args_parser():
 
     parser.add_argument(
         "--itp_file1",
-        help="First itp file. (Default: %(default)s)",
+        help="First itp file.",
         type=str,
         dest="itp_file1",
         default="data/4zw9/molecule_0.itp",
@@ -381,10 +382,9 @@ def args_parser():
 
     parser.add_argument(
         "--itp_file2",
-        help="second itp file. (Default: %(default)s)",
+        help="second itp file.",
         type=str,
-        dest="itp_file2",
-        default="data/5eqi/molecule_0.itp",
+        dest="itp_file2"
     )
     parser.add_argument(
         "--itp_out",
@@ -398,7 +398,7 @@ def args_parser():
         dest="nanometer",
         default=0.1,
         type=float,
-        help="Angstrom cutoff for conservedness. (Default: %(default)s)",
+        help="Nanometer cutoff to determine conserved rubber bands. (Default: %(default)s)",
     )
     parser.add_argument(
         "--gapopen",
@@ -421,13 +421,6 @@ def args_parser():
         action="store_true",
         help="Complain. (Default: %(default)s)",
     )
-    parser.add_argument(
-        "--debug",
-        dest="debug",
-        default=False,
-        action="store_true",
-        help="Complain more. (Default: %(default)s)",
-    )
 
     parser.add_argument(
         "--write",
@@ -441,7 +434,7 @@ def args_parser():
         dest="inverse",
         default=False,
         action="store_true",
-        help="Keep the rubber bands that are removed instead (Default: %(default)s)",
+        help="Keep the rubber bands that should be removed instead (Default: %(default)s)",
     )
     return parser
 
@@ -468,32 +461,33 @@ def print_args(args):
     if args.write:
         print(f"itp out   : {args.itp_out}")
     print(f"verbose   : {args.verbose}")
-    print(f"debug     : {args.debug}")
     print("-------------------------")
     print()
     print()
 
 
-def run_needle(args):
-    """Performs an alignment using NEEDLE
+def run_needle(gapopen=10.0, gapextend=0.5):
+    """
+    Performs an alignment using NEEDLE
 
     Args:
-        args (argparser instance): args
-    """
-    # TODO: make a.fasta, b.fasta tmp files or arguments in getopt.
+        gapopen (float, optional): gapopen parameter. Defaults to 10.
+        gapextend (float, optional): gapextend parameter. Defaults to 0.5.
+    """    
+
     try:
         if os.path.isfile("out.fasta"):
             print("Remove old alignment file 'out.fasta'")
             os.remove("out.fasta")
         
         print(
-            f"needle -gapopen {args.gapopen} -gapextend {args.gapextend} -asequence a.fasta -bsequence b.fasta -outfile out.fasta -auto -aformat fasta"
+            f"needle -gapopen {gapopen} -gapextend {gapextend} -asequence a.fasta -bsequence b.fasta -outfile out.fasta -auto -aformat fasta"
         )
         os.system(
-            f"needle -gapopen {args.gapopen} -gapextend {args.gapextend} -asequence a.fasta -bsequence b.fasta -outfile out.fasta -auto -aformat fasta"
+            f"needle -gapopen {gapopen} -gapextend {gapextend} -asequence a.fasta -bsequence b.fasta -outfile out.fasta -auto -aformat fasta"
         )
         os.system(
-            f"needle -gapopen {args.gapopen} -gapextend {args.gapextend} -asequence a.fasta -bsequence b.fasta -outfile out.needle -auto"
+            f"needle -gapopen {gapopen} -gapextend {gapextend} -asequence a.fasta -bsequence b.fasta -outfile out.needle -auto"
         )
     except:
         sys.exit("FATAL: Some error in Needle alignment!")
@@ -512,14 +506,12 @@ def main():
     itp_content_file1, aa_seq1 = parse_itp(
         itp_file=args.itp_file1,
         verbose=args.verbose,
-        debug=args.debug,
     )
 
     print(f"\nParsing \"{os.path.basename(args.itp_file2)}\"")
     itp_content_file2, aa_seq2 = parse_itp(
         itp_file=args.itp_file2,
         verbose=args.verbose,
-        debug=args.debug,
     )
     print()
 
@@ -531,10 +523,12 @@ def main():
         f.write(">b\n")
         f.write(aa_seq2 + "\n")
 
-    run_needle(args)
+    run_needle(gapopen=args.gapopen, gapextend=args.gapextend)
     print()
     homology_dict1 = parse_fasta_alignment(
-        fasta_file="out.fasta", flip=False, verbose=args.debug
+        fasta_file="out.fasta", 
+        flip=False, 
+        verbose=args.verbose
     )
 
     # Calculate rubber bands to remove:
@@ -564,7 +558,7 @@ def main():
             itp_in=args.itp_file1,
             itp_out=args.itp_out,
             to_skip=to_skip,
-            verbose=args.debug,
+            verbose=args.verbose,
         )
     else:
         print("\n!!!! NOT WRITING NEW ITP FILES !!!!")
