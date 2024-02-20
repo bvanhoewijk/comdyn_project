@@ -2,6 +2,16 @@ data/charmmgui_pdb/*
 *.fasta
 *.fai
 *.needle
+*.log
+*.tpr
+*.mdp
+*.cpt
+*.edr
+*.trr
+\#*\#
+*.pdb
+*.xtc
+*.gro
 02_angstrom_benchmark/*/#*
 analysis/02_angstrom_benchmark/MD/*/*.xtc
 analysis/02_angstrom_benchmark/MD/*/*.tpr
