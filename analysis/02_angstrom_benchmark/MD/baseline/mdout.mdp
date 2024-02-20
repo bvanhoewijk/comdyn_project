@@ -2,13 +2,13 @@
 ;	File 'mdout.mdp' was generated
 ;	By user: unknown (1000)
 ;	On host: Sauron
-;	At date: Thu Jan 11 15:37:41 2024
+;	At date: Fri Jan 26 10:34:30 2024
 ;
 ;	Created by:
-;	               :-) GROMACS - gmx grompp, 2023.3-conda_forge (-:
+;	                     :-) GROMACS - gmx grompp, 2023.3 (-:
 ;	
-;	Executable:   /home/bas/miniconda3/envs/md_production/bin.AVX2_256/gmx
-;	Data prefix:  /home/bas/miniconda3/envs/md_production
+;	Executable:   /usr/local/gromacs/bin/gmx
+;	Data prefix:  /usr/local/gromacs
 ;	Working dir:  /home/bas/projects/comdyn_project/analysis/02_angstrom_benchmark/MD/baseline
 ;	Command line:
 ;	  gmx grompp -f step6.6_equilibration.mdp -o step6.6_equilibration.tpr -c step6.5_equilibration.gro -r step5_charmm2gmx.pdb -p system.top -n index.ndx
@@ -143,7 +143,7 @@ tc-grps                  = protein membrane solute
 tau_t                    = 1.0 1.0  1.0
 ref_t                    = 303.15 303.15 303.15
 ; pressure coupling     
-Pcoupl                   = c-rescale
+Pcoupl                   = berendsen
 Pcoupltype               = semiisotropic
 nstpcouple               = -1
 ; Time constant (ps), compressibility (1/bar) and reference P (bar)
@@ -171,7 +171,7 @@ annealing-temp           =
 ; GENERATE VELOCITIES FOR STARTUP RUN
 gen_vel                  = no
 gen-temp                 = 300
-gen-seed                 = -543195906
+gen-seed                 = -1679822723
 
 ; OPTIONS FOR BONDS    
 constraints              = none

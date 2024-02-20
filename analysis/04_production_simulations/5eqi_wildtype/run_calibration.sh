@@ -1,5 +1,5 @@
-#!/usr/bin/bash
-conda activate md_production
+#!/bin/bash
+
 # Minimization
 export GMX_MAXCONSTRWARN=-1
 # step6.0 - soft-core minimization
