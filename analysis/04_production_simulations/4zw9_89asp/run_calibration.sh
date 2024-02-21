@@ -14,7 +14,7 @@ gmx mdrun -deffnm step6.1_minimization
 unset GMX_MAXCONSTRWARN
 
 # Equilibration
-cnt=6
+cnt=2
 cntmax=6
 
 while [ $cnt -le $cntmax ]; do
