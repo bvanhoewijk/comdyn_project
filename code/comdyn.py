@@ -8,7 +8,7 @@ import sys
 import pandas as pd
 from Bio.SeqUtils import seq1  # AA to oneletter notation
 from pyfaidx import Fasta
-
+import datetime
 
 def parse_fasta_alignment(fasta_file="out.fasta", verbose=False, flip=False):
     """Parses the alignment in FASTA file
@@ -301,6 +301,31 @@ def parse_itp(itp_file, verbose=False):
 
     return combined_data, aa_seq
 
+def uniquify(path):
+    """
+    Creates a unique filename by appending a number to the base filename if it already exists.
+    Args:  
+        path (str, required): The original filename.
+    Return: 
+        str: A unique filename.
+    """
+    filename, extension = os.path.splitext(path)
+    counter = 1
+
+    # Check if the filename already contains a number in parentheses
+    match = re.search(r"(\d+)$", filename)
+    if match:
+        existing_number = int(match.group(1))
+        filename = filename[:match.start()]  # Remove the existing number
+
+        # Increment the counter to start from the next number
+        counter = existing_number + 1
+
+    while os.path.exists(path):
+        path = f"{filename}{extension}.{counter}"
+        counter += 1
+
+    return path
 
 def write_itp(itp_in=None, itp_out="testje.itp", to_skip=None, verbose=False):
     """Write filtered itp file
@@ -311,6 +336,13 @@ def write_itp(itp_in=None, itp_out="testje.itp", to_skip=None, verbose=False):
         to_skip (set of tuples, required): Rubberbands to remove.
         verbose (bool, optional): Complain. Defaults to False.
     """
+
+    if os.path.isfile(itp_out):
+        new_file = uniquify(itp_out)
+        print(f"Making backup file of {itp_out} to {new_file}")
+        
+        os.rename(itp_out, new_file)
+
 
     print(f'\nWriting to "{itp_out}"...')
     written = 0
