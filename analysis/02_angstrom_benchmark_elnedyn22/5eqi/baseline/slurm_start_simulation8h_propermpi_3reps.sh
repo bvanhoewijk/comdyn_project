@@ -24,7 +24,7 @@ if [ -f "rep${rep}/step7_production_rep${rep}.tpr" ]; then
 else
     # Create TPR:
     echo "####################### TPR not defined. Creating via grompp"
-    gmx grompp -f step7_production.mdp -o rep${rep}/step7_production_rep${rep}.tpr -c step6.6_equilibration.gro -p system.top -n index.ndx -po rep${rep}/mdout.mdp
+    gmx grompp -f step7_production.mdp -o rep${rep}/step7_production_rep${rep}.tpr -c step6.6_equilibration.gro -p system.top -n index.ndx -po rep${rep}/mdout.mdp -maxwarn 1
 fi
 
 # If checkpoint:
