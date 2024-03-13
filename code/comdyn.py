@@ -243,12 +243,13 @@ def parse_rubber_band_block(itp=None):
     rubber_bands = []
     for line in fh:
         line_nr += 1
-        if line.startswith("#"):
-            continue
 
-        if line.startswith("; Rubber band"):
+        if line.startswith("#define RUBBER_FC"):
             print(f"Start rubber band section: {line_nr}")
             rubber_section = True
+
+        if line.startswith("#"):
+            continue
 
         if rubber_section:
             line = line.strip()
@@ -351,9 +352,10 @@ def write_itp(itp_in=None, itp_out="testje.itp", to_skip=None, verbose=False):
     fh = open(itp_in, "r")
     rubber_section = False
     line_nr = 0
+
     for line in fh:
         line_nr += 1
-        if line.startswith("; Rubber band"):
+        if line.startswith("#define RUBBER_FC"):
             out_fh.write(line)
             written += 1
 
