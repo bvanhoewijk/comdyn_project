@@ -1,7 +1,7 @@
 define                   = -DPOSRES -DPOSRES_FC=50 -DBILAYER_LIPIDHEAD_FC=10
 integrator               = md
 tinit                    = 0.0
-dt                       = 0.010
+dt                       = 0.020
 nsteps                   = 50000
 
 nstlog                   = 1000

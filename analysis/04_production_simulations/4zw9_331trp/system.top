@@ -7,7 +7,7 @@
 #include "toppar/martini_v3.0.0_solvents_v1.itp"
 #include "toppar/martini_v3.0.0_sugars_v1.itp"
 #include "toppar/martini_v3.0_sterols_v1.0.itp"
-#include "4zw9_trp331_proa.itp"
+#include "4zw9_minimized_trp331_proa.itp"
 
 [ system ]
 ; name
@@ -16,7 +16,7 @@ Martini system
 [ molecules ]
 ; name        number
 PROA 1
-POPC 384
-W 7781
-NA 94
-CL 95
+POPC 383
+W 7919
+NA 96
+CL 97

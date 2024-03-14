@@ -83,10 +83,6 @@ do
     # Config files
     cp ${BASEPATH}/config/* /home/bas/projects/comdyn_project/analysis/02_angstrom_benchmark_elnedyn22/5eqi/${value}/
     cp ${BASEPATH}/config/* /home/bas/projects/comdyn_project/analysis/02_angstrom_benchmark_elnedyn22/4zw9/${value}/
-
-    # Production run script:
-    cp ${CODE}/slurm_start_simulation8h_propermpi_3reps.sh /home/bas/projects/comdyn_project/analysis/02_angstrom_benchmark_elnedyn22/4zw9/${value}/
-    cp ${CODE}/slurm_start_simulation8h_propermpi_3reps.sh /home/bas/projects/comdyn_project/analysis/02_angstrom_benchmark_elnedyn22/5eqi/${value}/
 done
 ```
 
@@ -147,4 +143,15 @@ do
     git add -f ${BASEPATH}/5eqi/${value}/step6.6*.gro
     git add -f ${BASEPATH}/5eqi/${value}/step7_production.mdp
 done
+```
+
+
+# Snellius
+```bash
+cd 4zw9
+
+for value in 0.1nm 0.025nm 0.05nm 0.01nm baseline
+do
+
+
 ```
