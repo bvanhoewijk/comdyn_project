@@ -1,9 +1,9 @@
 #!/bin/bash
 #SBATCH --nodes=1
-#SBATCH --ntasks=96
+#SBATCH --ntasks=32
 #SBATCH --partition=genoa
 #SBATCH --time=12:00:00
-#SBATCH -a 1,2,3
+#SBATCH -a 1
 
 module load 2023
 module load GROMACS/2023.3-foss-2023a 
